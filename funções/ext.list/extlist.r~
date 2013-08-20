@@ -1,0 +1,295 @@
+dados<-read.csv("dados_ext_resolvido.csv",stringsAsFactors =F)
+colnames(dados)
+dados<-dados[,c(1,3,4,5,6)]
+
+dados[,1:2]
+
+###########################################################################
+#Matriz Bipartida
+#######################################################################
+matriz<-with(dados[,1:2],ifelse(table(parasito,host) > 0, 1, 0))
+
+sum(rowSums(matriz)<1)
+sum(colSums(matriz)<1)
+
+
+#Lembrando de tirar os casos especiais, para não ter zeros nas somas da linhas ou das colunas
+#ou seja, sem especie com interação com ninguem.
+#como ficam as que separamos la em cima nos casos especiais.
+matriz<-matriz[,which(colSums(matriz)>0)]
+matriz<-matriz[which(rowSums(matriz)>0),]
+colSums(matriz)
+rowSums(matriz)
+
+colnames(matriz)
+rownames(matriz)
+
+#Vamos abrir os pacotes
+library(bipartite)
+library(igraph)
+
+#Um grafico basico de rede, pessima visualização
+plotweb(matriz,labsize=0.001,col.high = "green", col.low="red")
+
+
+#Primeiro transformamos os dados num grafo
+dados.igraph<-graph.data.frame(unique(dados[,1:2]))
+
+#Plotando as interações como um grafo.
+#Isso mais pra frente a gente capricha
+#jpeg("grafo1.jpg")
+plot(dados.igraph,layout=layout.fruchterman.reingold,
+  vertex.color=c(rep("red",length(unique(dados[,"parasito"])))
+  ,rep("green",length(unique(dados[,"host"])))),vertex.size=4,
+  edge.arrow.size=0.2,vertex.label.dist=NA)
+title("Revisão parasitas em Anuros")
+#dev.off()
+
+#Agora vamos começar a contar coisas, primeiro vamos olhar quais as especies de parasitas
+unique(dados[,"parasito"])
+
+#Contagem por parasita
+degree(dados.igraph,v=unique(dados[,"parasito"]) ,mode = c("out"),loops = F, normalized = FALSE)
+
+##########################################################
+#Simulando extinção, função para contar especies extintas
+##########################################################
+#Aqui esta correto.
+
+colnames(matriz)
+rownames(matriz)
+
+#Fazemos um função para contar os caras extintos na comunidade
+ext.cont<-function(dados,extintos) {
+  spextintas<-sum(rowSums(dados[,!dimnames(dados)[[2]]%in%extintos,drop=F])<1)
+  return(spextintas)
+  }
+
+#dai simulamos uma ordem de extinção das especies
+##########Augusto, que o que agente precisa fazer é colocar um ordem real de chance de extinção. baseada no range do sapinho
+extinto<-sample(colnames(matriz),ncol(matriz),replace=F)
+extinto
+
+#Olhamos essa ordem
+resultado<-rep(NA,ncol(matriz))
+resultado
+
+
+#loop
+#Dai vamos vendo a ordem de extinção
+for(i in 1:ncol(matriz)) {
+  resultado[i]<-ext.cont(matriz,extinto[1:i])
+  }
+resultado
+
+#podemos fazer  grafico para ver como fica
+#jpeg("1extincao.jpg")
+plot(1:ncol(matriz),resultado,type="b",xlab="Host's extinctions",
+ylab="Parasites extinctions",frame=F)
+#dev.off()
+
+#total de possibilidades de simulações com essas possibilidades
+format(factorial(ncol(matriz)),scientific=FALSE)
+
+final<-cbind(resultado)
+
+#Aqui demora, tem que esperar
+for (j in 1:100) {
+    print(paste("Simulação ",j))
+    extinto<-sample(colnames(matriz),ncol(matriz),replace=F)
+  for(i in 1:1:ncol(matriz)) {
+        resultado[i]<-ext.cont(matriz,extinto[1:i])
+    }
+  final<-cbind(final,resultado)
+  }
+
+str(final)
+
+#jpeg("ext1000sim.jpg")
+matplot(1:ncol(matriz),final,type="l",xlab="Extinção de Hospedeiros (Sapinhos)",
+  ylab="Extinção de parasitas",lty=1,col="red",frame=F,xlim=c(0,200))
+  title("1000 Simulações em vermelho")
+legend("topleft",lty=1,lwd=3,legend=c("Média de extinção"))
+lines(1:ncol(matriz),apply(final,1,mean),lty=1,lwd=2)
+#dev.off()
+#até aqui parece que tudo funciona bem
+
+#Dai fazemos uma função para ver quem esta extinguindo
+#função pra ver qual parasitas esta extinguindo dados a morte dos hospedeiros extintos
+ext.list<-function(dados,extintos) {
+  lista.extintos<-rownames(dados)[rowSums(dados[,!(dimnames(dados)[[2]]%in%extintos),drop=F])<1]
+  return(lista.extintos)
+  }
+
+
+#Então decidimos que para cada bolinha, cada especie que vai extinguindo dos hospedeiros
+#vamos ver quais especies de parasitas extinguiram.
+######Aqui denovo, ao invés de ser aleatório segue dependendo da chance de estinção do sapinho
+extinto<-sample(colnames(matriz),ncol(matriz),replace=F)
+
+#Aqui um exemplo, a gente extinguiu até a terceira especie de hospedeiro.
+ext.list(matriz,extinto[1:15])
+lista.extintos<-list(NA)
+
+#loop
+for(i in 1:ncol(matriz)) {
+  lista.extintos[[i]]<-ext.list(matriz,extinto[1:i])
+  }
+
+head(lista.extintos)
+lista.final<-list(lista.extintos)
+
+#Aqui a gente olha quando, quando foi a primeira vez que uma determinada especie foi extinda.
+which(mapply("%in%","Agamonema ranae", lista.extintos))[1]
+
+
+#Configure aqui o número de simulações
+nsim<-100
+#mas a gente pode fazer o que fez acima varia vezes.
+for (j in 2:nsim) {
+    print(paste("Simu ",j))
+    extintosimu<-sample(colnames(matriz),ncol(matriz),replace=F)
+    lista.aux<-list()
+    for(i in 1:ncol(matriz)) {
+        lista.aux[[i]]<-ext.list(matriz,extintosimu[1:i])
+        }
+    lista.final[[j]]<-lista.aux
+    }
+
+which(mapply("%in%","Agamonema ranae", lista.final[[1]]))[1]
+which(mapply("%in%","Agamonema ranae", lista.final[[2]]))[1]
+which(mapply("%in%","Agamonema ranae", lista.final[[3]]))[1]
+which(mapply("%in%","Agamonema ranae", lista.final[[4]]))[1]
+which(mapply("%in%","Agamonema ranae", lista.final[[5]]))[1]
+
+#Daqui como fica uma lista gigante a gente a gente poe a posição de quando morreu a primeira vez numa matriz por especie
+hist.final<-matrix(NA,ncol=nsim,nrow=nrow(matriz),dimnames=list(rownames(matriz),paste("Simulação",1:nsim,sep=" ")))
+
+for(j in rownames(hist.final)) {
+        print(paste("sp ",j))
+    for(i in 1:nsim) {
+            print(paste("Simu ",i))
+            hist.final[j,i]<-which(mapply("%in%",j, lista.final[[i]]))[1]
+    }
+  }
+
+#write.csv(hist.final,"simufinal.csv",fileEncoding = "latin1")
+#hist.final<-read.csv("simufinal.csv",encoding = "latin1")
+
+str(hist.final)
+hist.final[,1]
+
+#########################################
+#segunda simulação
+##################################################
+#library("maptools")
+#arquivo<-"/home/augusto/Dropbox/Manuscritos/Parasito/Anfibios Am do Sul/coextinção/All_AMPHIBIANS_JULY2013/Amphibians.shp"
+#ampsshape<-readShapeSpatial(arquivo,delete_null_obj=TRUE)
+
+dados.area<-data.frame(nome=colnames(matriz),area=NA,stringsAsFactors =F)
+dados.area
+
+areavida<-read.csv2("areavida.csv",stringsAsFactors =F)
+str(areavida)
+
+round(as.numeric(gsub(",",".",areavida$soma.do.SHAPE_AREA)),digits=5)
+area<-as.numeric(gsub(",",".",areavida$soma.do.SHAPE_AREA))
+area
+
+logico<-dados.area[,1]%in%areavida$hosp
+
+lista<-dados.area[logico,1]
+which(areavida$hosp==lista[3])
+
+for(i in 1:length(lista)){
+    dados.area[dados.area$nome==lista[i],2]<-area[which(areavida$hosp==lista[i])]
+    }
+dados.area
+
+lista<-dados.area[!logico,1]
+lista
+
+
+for(i in 1:length(lista)){
+    posicao<-agrep(lista[i],areavida$hosp)
+    if(length(posicao)>0) {
+        dados.area[dados.area$nome==lista[i],2]<-area[posicao]
+        }
+    }
+
+maximo<-max(dados.area[,2],na.rm =T)
+
+dados.area[is.na(dados.area[,2]),1:2]
+
+substituir<-c(maximo,31049800,7398310,134089000,701434000,1149080000,142615000,49537100,9392012,7710420)
+local<-which(is.na(dados.area[,2]))
+
+for(i in 1:length(local) ) {
+    dados.area[local[i],2]<-substituir[i]
+    }
+
+
+sort(dados.area[,2])
+
+teste<-c(0.2, 0.5,0.1,0.3)
+
+(1-teste)/sum(1-teste)
+
+probabilidades<-dados.area[,2]/sum(dados.area[,2])
+plot(dados.area[,2],probabilidades)
+probabilidades[order(probabilidades,decreasing = FALSE)]<-probabilidades[order(probabilidades,decreasing = TRUE)]
+plot(dados.area[,2],probabilidades)
+
+sum(probabilidades)
+round(probabilidades,digits=5)
+max(round(probabilidades,digits=5))
+
+
+######
+extinto<-sample(colnames(matriz),ncol(matriz),replace=F,prob =probabilidades)
+
+ext.list(matriz,extinto[1:15])
+lista.extintos<-list(NA)
+#loop
+for(i in 1:ncol(matriz)) {
+  lista.extintos[[i]]<-ext.list(matriz,extinto[1:i])
+  }
+
+head(lista.extintos)
+lista.final<-list(lista.extintos)
+
+#Aqui a gente olha quando, quando foi a primeira vez que uma determinada especie foi extinda.
+which(mapply("%in%","Agamonema ranae", lista.extintos))[1]
+
+#Quantas simulações fazer?
+nsim<-50
+
+#mas a gente pode fazer o que fez acima varia vezes.
+for (j in 2:nsim) {
+    print(paste("Simu ",j))
+    extintosimu<-sample(colnames(matriz),ncol(matriz),replace=F,prob =probabilidades)
+    lista.aux<-list()
+    for(i in 1:ncol(matriz)) {
+        lista.aux[[i]]<-ext.list(matriz,extintosimu[1:i])
+        }
+    lista.final[[j]]<-lista.aux
+    }
+
+which(mapply("%in%","Agamonema ranae", lista.final[[1]]))[1]
+which(mapply("%in%","Agamonema ranae", lista.final[[2]]))[1]
+which(mapply("%in%","Agamonema ranae", lista.final[[3]]))[1]
+which(mapply("%in%","Agamonema ranae", lista.final[[4]]))[1]
+which(mapply("%in%","Agamonema ranae", lista.final[[5]]))[1]
+
+#Daqui como fica uma lista gigante a gente a gente poe a posição de quando morreu a primeira vez numa matriz por especie
+hist.final2<-matrix(NA,ncol=nsim,nrow=nrow(matriz),dimnames=list(rownames(matriz),paste("Simulação",1:nsim,sep=" ")))
+
+for(j in rownames(hist.final2)) {
+        print(paste("sp ",j))
+    for(i in 1:nsim) {
+            print(paste("Simu ",i))
+            hist.final2[j,i]<-which(mapply("%in%",j, lista.final[[i]]))[1]
+    }
+  }
+
+#write.csv(hist.final2,"simufinal2.csv",fileEncoding = "latin1")
