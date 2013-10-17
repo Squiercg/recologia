@@ -45,6 +45,10 @@ system.time(bubblesortR(sample(100)))
 system.time(bubblesortR(sample(1000)))
 system.time(bubblesortR(sample(5000)))
 
+system.time(bubblesortC(sample(100)))
+system.time(bubblesortC(sample(1000)))
+system.time(bubblesortC(sample(5000)))
+
 
 vetor<-sample(8)
 
