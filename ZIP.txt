@@ -1,0 +1,14 @@
+
+model {
+ psi ~ dunif(0,1)
+ alpha ~ dnorm(0,0.001)
+ beta ~ dnorm(0,0.001)
+ for (i in 1:n) {
+    w[i] ~ dbern(psi)
+    C[i] ~ dpois(eff.lambda[i])
+    eff.lambda[i] <- w[i]*lambda[i]
+    log(lambda[i]) <- alpha + beta *x[i]
+ }
+ R.lpsi <- logit(1-psi)
+}
+

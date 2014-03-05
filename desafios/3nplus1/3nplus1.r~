@@ -1,0 +1,102 @@
+collatz<-function(n) {
+    if( (n %% 2) == 0 ) {
+        n<-n/2
+    } else {
+        n<-n*3+1
+    }
+    return(n)
+}
+
+n<-22
+
+while(n!=1) {
+    n<-collatz(n)
+    print(n)
+}
+
+seqcollatz<-function(n) {
+    vetor<-c(n)
+    i<-1
+
+    while(vetor[i]!=1) {
+        vetor[i+1]<-collatz(vetor[i])
+        i<-i+1
+    }
+
+    return(vetor)
+}
+
+seqcollatz(22)
+
+
+library(igraph)
+
+n<-as.character(seqcollatz(22))
+n
+
+grafo<-graph.formula()
+
+grafo<-add.vertices(grafo,length(n))
+V(grafo)$name<-n
+
+for(i in 1:c(length(n)-1)) {
+    grafo[n[i],n[i+1]]<-TRUE
+}
+
+plot(grafo,vertex.size=10)
+
+
+n<-as.character(seqcollatz(30))
+n
+
+logico<-!n%in%V(grafo)$name
+
+grafo<-add.vertices(grafo,length(n[logico]))
+V(grafo)$name[is.na(V(grafo)$name)]<-n[logico]
+
+for(i in 1:c(length(n)-1)) {
+    grafo[n[i],n[i+1]]<-TRUE
+}
+
+plot(grafo,vertex.size=10)
+
+addgrafo<-function(n,grafo) {
+    sequencia<-as.character(seqcollatz(n))
+
+    logico<-!sequencia%in%V(grafo)$name
+
+    if(sum(logico)>0) {
+        grafo<-add.vertices(grafo,length(sequencia[logico]))
+        V(grafo)$name[is.na(V(grafo)$name)]<-sequencia[logico]
+    } else {
+        grafo<-add.vertices(grafo,length(sequencia))
+        V(grafo)$name<-sequencia
+    }
+
+    for(i in 1:c(length(sequencia)-1)) {
+        grafo[sequencia[i],sequencia[i+1]]<-TRUE
+    }
+    return(grafo)
+}
+
+plot(grafo)
+
+
+grafo<-graph.formula()
+
+
+for(i in 8:50) {
+    grafo<-addgrafo(i,grafo)
+}
+
+plot(grafo,layout=layout.reingold.tilford,vertex.size=5,vertex.label=NA)
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,36 @@
+#include <stdio.h>
+
+int main(void){
+
+  int a,b,i,ciclo,aux,maior;
+
+  scanf("%d %d",&a, &b);
+
+  maior=1;
+
+  for(i=a;i<b;i++) {
+
+    ciclo=1;
+    aux=i;
+
+    while(aux!=1) {
+
+      if(aux%2==0) {
+	aux=aux/2;
+	ciclo++;
+      } else {
+	aux=aux*3+1;
+	ciclo++;
+      }
+  }
+
+    if(maior<ciclo) {
+      maior=ciclo;
+    }
+
+  }
+
+
+  printf("%d %d %d",a,b,maior);
+  return 0;
+}
