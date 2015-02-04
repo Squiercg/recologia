@@ -1,0 +1,9 @@
+
+model{
+for(i in 1:N) {
+    y[i,1:2] ~ dmnorm(mu[],tau[,])
+}
+mu[1:2] ~ dmnorm(mu0[],S2[,])
+tau[1:2,1:2] ~ dwish(S3[,],3)
+Sigma[1:2,1:2] <- inverse(tau[,])
+}

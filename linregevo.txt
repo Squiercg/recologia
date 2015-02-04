@@ -1,0 +1,17 @@
+
+model {
+    alpha ~ dnorm(0,1.0E-06)
+    beta ~ dnorm(0,1.0E-06)
+    tau ~ dgamma(1,1)
+    sigma <- 1 / (sigma * sigma)
+    for (i in 1:Nspec) {
+        mu[i] <- alpha+beta*X[i]
+        }
+    Y[1:Nspec] ~ dmnorm(mu[],TAU[,])
+    for (i in 1:Nspec) {
+        for (j in 1:Nspec) {
+            TAU[i,j] <- tau*invA[i,j]
+            }
+        }
+}
+
