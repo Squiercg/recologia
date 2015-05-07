@@ -1,8 +1,0 @@
-<pre lang="rsplus"> 
-</pre>
-
-<pre>
-<div style="font-family:Courier New;font-size:10pt;">
-
-</div>
-</pre>
