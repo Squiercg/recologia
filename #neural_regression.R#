@@ -1,0 +1,21 @@
+library(mlbench)
+data(BostonHousing)
+
+x<-runif(60,0,1)
+y<-rnorm(60,2*x,0.1)
+
+plot(y~x)
+
+install.packages("nnet")
+require(nnet)
+ 
+# scale inputs: divide by 50 to get 0-1 range
+
+
+nnet.fit <- nnet(y ~ x, size=2)
+plot(nnet.fit)
+summary(nnet.fit)
+summary(lm(y~x))
+# multiply 50 to restore original scale
+nnet.predict <- predict(nnet.fit)
+ 
