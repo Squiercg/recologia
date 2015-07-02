@@ -12,9 +12,6 @@ def reglog(n0,r,alpha,tempo):
         y.append(y[i]+y[i]*r*(1-alpha*y[i]))
     return x,y
 
-
-
-
 tela = Tkinter.Tk()
 
 n0=1
@@ -49,7 +46,7 @@ canvasf.get_tk_widget().pack()
 
 tela.mainloop()
 
-print x,y
+print "Fim"
 
 
 
