@@ -1,33 +1,37 @@
-def reverse_complement(s):
-    complements = {'A':'T', 'T':'A', 'G':'C', 'C':'G'}
-    return ''.join([complements[c] for c in reversed(s)])
+#Post:
+#http://recologia.com.br/2015/07/rosalind-locating-restriction-sites/
 
+def complemento_reverso(s):
+    complementos = {'A':'T', 'T':'A', 'G':'C', 'C':'G'}
+    return ''.join([complementos[c] for c in reversed(s)])
 
-def reverse_palindromes(s):
-    results = []
+def palindromo_reverso(s):
+    saida = []
 
     l = len(s)
 
-    for i in range(l):
-        for j in range(4, 9):
+    for i in range(0,l-4):
+        for j in range(4, 13):
+            if i + j < l:
+                s1 = s[i:i+j]
+                s2 = complemento_reverso(s1)
 
-            if i + j > l:
-                continue
+                if s1 == s2:
+                    #print "s1:",s1," s2:",s2
+                    saida.append([i + 1, j])
 
-            s1 = s[i:i+j]
-            s2 = reverse_complement(s1)
+    return saida
 
-            if s1 == s2:
-                results.append((i + 1, j))
+##################################
+## Processamento
+##################################
 
-    return results
+sequencia = "TCAATGCATGCGGGTCTATATGCAT"
+#dados = open('/home/augusto/Downloads/rosalind_revp.txt').read().strip()
+#dados = dados[dados.find('\n')+1:].replace('\n','')
 
+saida = palindromo_reverso(sequencia)
 
-if __name__ == "__main__":
-
-    small_dataset = "TCAATGCATGCGGGTCTATATGCAT"
-    large_dataset = open('/home/augusto/Downloads/rosalind_revp.txt').read().strip()
-
-    results = reverse_palindromes(large_dataset)
-
-    print "\n".join([' '.join(map(str, r)) for r in results])
+print
+for i in saida:
+    print i[0],i[1]
