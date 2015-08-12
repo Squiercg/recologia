@@ -1,74 +1,68 @@
-rm(list=ls())
-# Remove all objects from memory
-# Function to do numerical integration
-INTEGRAND <- function(age,x) {
-    Af <- 0
-    Bf <- 8
-    As <- 1
-    Bs <- 0.5
-    # parameter values
-    return ((Af-Bf*x)*exp(-(As+Bs*x)*age))
-    # return function
+#http://recologia.com.br/2015/08/evolucao-fisherian-optimality-models-parte-4
+# Função para integração númerica
+Fitness <- function(idade,x,Af=0,Bf=8,As=1,Bs=0.5) {
+    return ((Af-Bf*x)*exp(-(As+Bs*x)*idade))
 }
 
-# MAIN PROGRAM
+# Figura do fitness
 n<- 100
 z<- seq(0,3,length=n)
 W<- matrix(0,n,1)
+
+# Iterando sobre n tamanhos do corpo
 for (i in 1:n) {
-    # Iterate over n “body sizes”
+    #Valor de x
     x<- z[i]
-    # Set value of x
-    # Integrate from 1 to infinity and add to W
-    W[i] <- integrate(INTEGRAND,1,Inf,x)$value
+    #Integrando de 1 até o infinito e guardando na saida W
+    W[i] <- integrate(Fitness,1,Inf,x)$value
 }
 
-plot(z,-W,type="l", xlab="Body size, x", ylab="Fitness, W",las=1,lwd=4)
+#Plotando a figura
+#jpeg("01.jpg")
+plot(z,-W,type="l", xlab="Tamanho do corpo, x", ylab="Fitness, W",las=1,lwd=4)
+#dev.off()
 
 ##################################
-## Texto...
+## Derivada
 ##################################
 y <- deriv(~(0+4*x)*exp(-(1+0.5*x))/(1+0.5*x),"x")
 y
 
-
-FUNC <- function(x){
+##################################
+## Achando o maximo
+##################################
+funcao <- function(x) {
     return(4+0.5*(0-4*x)-(0+4*x)*0.5/(1+0.5*x))
 }
-B <- uniroot(FUNC, interval= c(0,4))# Set lower interval 1⁄4 0
-B$root
+saida <- uniroot(funcao, interval= c(0,4))
+saida$root
 
-
-# Function to obtain the gradient at a value w
-FUNC <- function(w) {
-    y <- deriv(~(0+4*x)*exp(-(1+0.5*x))/(1+0.5*x),"x") # Get the derivative
+#saida do deriv
+funcao2 <- function(w) {
+    y <- deriv(~(0+4*x)*exp(-(1+0.5*x))/(1+0.5*x),"x") # calcule a derivada
+    #coloque x=w
     x <- w
-    # Set x equal to w
+    #calcule a derivada em w
     z <- eval(y)
-    # Evaluate the derivative at w
+    # Atribua o valor para d
     d <- attr(z,"gradient")
-    # Assign the gradient value to d
+    # retorne esse valor
     return(d)
-    # Return d to the main program
 }
 
-# MAIN PROGRAM
-# Root must be enclosed by the limits set by the user, here set at 0 to 4
-B <- uniroot(FUNC, interval= c(0,4))
+# Encontre a raiz
+B <- uniroot(funcao2, interval= c(0,4))
 B$root
-# Print out the value found
 
-rm(list=ls())
-# Remove all objects from memory
-# Function to supply components for numerical integration
-INTEGRAND <- function(age,x)  {
-    Af <- 0
-    Bf <- 4
-    As <- 1
-    Bs <- 0.5 # parameter values
-    return (-(Af+Bf*x)*exp(-(As+Bs*x)*age))# return function value
+
+##################################
+## Usando métodos númericos
+##################################
+fitness <- function(idade,x,Af=0,Bf=4,As=1,Bs=0.5)  {
+    #Fitness negativo
+    return (-(Af+Bf*x)*exp(-(As+Bs*x)*idade))
 }
-# Function to call integration routine
-FUNC <- function(x){integrate(INTEGRAND,1,Inf,x)$value}
-# Minimization routine
-nlm(FUNC,p=1)$estimate
+# Função para chamar a integral
+funcao <- function(x){integrate(fitness,1,Inf,x)$value}
+# Minimizando a função
+nlm(funcao,p=1)$estimate
