@@ -1,0 +1,20 @@
+
+    model {
+        omega ~ dunif(0, 1)
+        med.tempo ~ dnorm(0,0.001) # Hyperprior da media tempo
+        sigma.tempo ~ dunif(0, 5) # Hyperprior da variacao do tempo
+        k.tempo ~ dunif(2, 30) # Hyperprior da variacao do tempo
+        for (i in 1:tempo){
+            p[i] ~ dt(med.tempo, tau.tempo, k.tempo)
+        }
+        for (i in 1:amostras){
+            z[i] ~ dbern(omega)
+            for (j in 1:tempo){
+                yaug[i,j] ~ dbern(p.eff[i,j])
+                p.eff[i,j] <- z[i] * p[j]
+                } #j
+            } #i
+        N <- sum(z[])
+        tau.tempo <- 1 / (sigma.tempo * sigma.tempo)
+    }
+    

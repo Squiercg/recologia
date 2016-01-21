@@ -1,36 +1,28 @@
+#http://recologia.com.br/2015/11/o-que-e-ggplot2/
 library(ggplot2)
 
-str(diamonds)
+preditor<-runif(100,1,5)
+resposta<-rnorm(100,2+2*preditor)
+dados<-data.frame(preditor,resposta)
 
-set.seed(1410)
-dsmall <- diamonds[sample(nrow(diamonds), 100), ]
 
-qplot(carat,price, data = dsmall)
+p <- ggplot(dados,aes(preditor,resposta))
+p <- p + layer(geom = "point")
+p
 ggsave("figura01.jpg")
 
-qplot(carat, price, data = dsmall, colour = color)
+
+p <- ggplot(dados,aes(x=preditor))
+p <- p + layer(geom = "bar",geom_params = list(fill = "steelblue"),stat = "bin",stat_params = list(binwidth = 0.2))
+p
 ggsave("figura02.jpg")
 
-qplot(carat, price, data = dsmall, shape = cut)
+p <- ggplot(dados,aes(x=preditor))
+p <- p + geom_histogram(binwidth = 0.2, fill = "steelblue")
+p
 ggsave("figura03.jpg")
 
-qplot(carat, price, data = dsmall, geom = c("point", "smooth"))
-qplot(carat, price, data = dsmall, geom = c("point", "linear"))
-?geom
 
-qplot(carat, price, data = dsmall, geom = c("point", "smooth"),se=FALSE)
-
-qplot(carat, price, data = dsmall, geom = c("point", "smooth"),span = 0.2)
-
-
-qplot(color,price, data = dsmall, geom = c("boxplot"))
-
-qplot(carat, data = diamonds, geom ="histogram")
-
-qplot(carat, data = diamonds, geom = "histogram", binwidth = 1,xlim = c(0,3))
-
-qplot(color, data = diamonds, geom = "bar")
-
-qplot(carat, data = diamonds, facets = color ~ .,geom = "histogram", binwidth = 0.1, xlim = c(0, 3))
-
-qplot(carat, price, data = dsmall,xlab = "Price ($)", ylab = "Weight (carats)",main = "Price-weight relationship")
+p <- ggplot(mtcars, aes(mpg, wt, colour = cyl)) + geom_point()
+p
+ggsave("figura04.jpg")
