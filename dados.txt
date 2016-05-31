@@ -1,0 +1,10 @@
+Location	Area	Species
+Tiburon Peninsula	5.9	370
+San Francisco	45	640
+Santa Barbara area	110	680
+Santa Monica Mountains	320	640
+Marin County	529	1060
+Santa Cruz Mountains	1386	1200
+Monterey County	3324	1400
+San Diego County	4260	1450
+California Coast	24520	2525
