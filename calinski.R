@@ -47,5 +47,5 @@ ajuste<-cascadeKM(exemplo,2,10,criterion = 'calinski')
 plot(ajuste)
 
 ##Fazendo nosso próprio plot
-plot(2:10,ajuste$results[2,],type="b",pch=19)
+plot(2:10,ajuste$results[2,],type="b",pch=19,xlab="Número de Grupos",ylab="Valor de Calinski",frame=F)
 abline(v=which.max(ajuste$results[2,])+1,lty=3,lwd=3,col="red")
