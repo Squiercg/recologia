@@ -1,5 +1,0 @@
-
-preditor<-runif(30,0,8)
-resposta<-10-preditor^2+rnorm(30,0,4)
-
-plot(resposta~preditor)
