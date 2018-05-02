@@ -1,7 +1,0 @@
-library(igraph)
-
-grafo<- graph_from_literal(ATC-- TCA,ATG-- TGA,ATG-- TGC,CAT-- ATC,CAT-- ATG,GAT-- ATG,GCA-- CAT,TCA-- CAT,TGA-- GAT)
-
-jpeg("01.jpg")
-plot(grafo,vertex.size=35,vertex.color="lightblue")
-dev.off()
