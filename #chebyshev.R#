@@ -1,6 +1,0 @@
-
-p<-seq(0,1,length=1000)
-
-jpeg("01.jpg")
-plot(p,p*(1-p),frame=F,type="l",lwd=2)
-dev.off()
