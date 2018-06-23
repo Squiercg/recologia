@@ -1,14 +1,17 @@
+##http://recologia.com.br/2018/06/grafos-e-caracteristicas-de-vertices/
+##install.packages("sna",repos = "https://cloud.r-project.org")
+
 library(igraph)
 library(igraphdata)
 library(sand)
 library(network)
+
 
 ##Dados karate
 data(karate)
 jpeg("01.jpg",width=480,height = 480)
 plot(karate)
 dev.off()
-
 
 ##Distribuição de graus
 jpeg("02.jpg",width=1.5*480,height = 480)
@@ -58,6 +61,7 @@ dev.off()
 
 
 ##Degree, Closeness, Betweenness e Eigenvalue
+library(sna)
 A <- get.adjacency(karate, sparse=FALSE)
 g <- network::as.network.matrix(A)
 jpeg("08.jpg",width=480,height = 480)
@@ -74,7 +78,6 @@ sna::gplot.target(g, evcent(g)$vector, main="Eigenvalue",circ.lab = FALSE, circ.
 dev.off()
 
 ##HITS algorithm
-library(sna)
 l <- layout.kamada.kawai(aidsblog)
 jpeg("12.jpg",width=480,height = 480)
 plot(aidsblog, layout=l, main="Hubs", vertex.label="",vertex.size=10 * sqrt(hub.score(aidsblog)$vector))
