@@ -1,72 +1,81 @@
-##http://rpubs.com/kaz_yos/toc
+##http://recologia.com.br/2015/07/epidemiologia-o-modelo-sir-com-dinamica-populacional/
 ##http://homepages.warwick.ac.uk/%7Emasfz/ModelingInfectiousDiseases/Chapter8/Program_8.2/index.html
 ##install.packages("deSolve")
+##install.packages("igraph")
 library(deSolve)
+library(igraph)
 
-times <- seq(from = 0, to = 600, by = 1)           
-yinit <- c(Susc = 0.9, Infected = 0.1, Recovered = 0)
-pars <- c(beta = 0.1, recovery = 0.005, death = 0.001, birth = 0.001)
+##################################
+## Grafo
+##################################
+SIR_grafo<-graph.formula(S-+I,I-+R,Nascimentos-+S,Morte+-S,Morte+-I,Morte+-R)
+E(SIR_grafo)$label<-c(expression(paste(beta,"IS")),
+                      "m",
+                      expression(paste(gamma,"I")),
+                      "m",
+                      "m",
+                      "b")
+loc<-matrix(c(0,1,1,1,2,1,0,1.5,1,0.5),ncol=2,byrow=T)
+jpeg("01.jpg")
+plot(SIR_grafo,layout=loc,rescale=F,xlim=c(-0.2,2.2),ylim=c(0,2),vertex.size=40,vertex.color="lightblue",edge.label.color="black")
+dev.off()
 
-SIR_model <- function(times, yinit, pars){    
-    with(as.list(c(yinit,pars)), {
-        dSusc      <- birth - beta*Infected*Susc                     - death*Susc
-        dInfected  <-         beta*Infected*Susc - recovery*Infected - death*Infected
-        dRecovered <-                              recovery*Infected - death*Recovered
-        return(list(c(dSusc, dInfected, dRecovered)))})
-    
-    }
+##
+SIR_grafo_vac<-graph.formula(S-+I,I-+R,Nascimentos-+S,Morte+-S,Morte+-I,Morte+-R,S-+R)
+E(SIR_grafo_vac)$label<-c(expression(paste(beta,"IS")),
+                      "Vacinação",
+                      "m",
+                      expression(paste(gamma,"I")),
+                      "m",
+                      "m",
+                      "b")
+jpeg("02.jpg")
+plot(SIR_grafo_vac,layout=loc,rescale=F,xlim=c(-0.2,2.2),ylim=c(0,2),vertex.size=40,
+     edge.curved=c(0,0.5,0,0,0,0,0),vertex.color="lightblue",edge.label.color="black")
+dev.off()
 
-results <- ode(func = SIR_model, times = times, y = yinit, parms = pars)
-## 
-matplot(results[, 1], results[, 2:4], type="l", lty=1)
-legend("topright", col=1:3, legend=c("S", "I", "R"), lwd=1)
-
-
-###
-
-epi203v <- function(pars){
-
-    ## NOTICE that this includes a new parameter "vaccination"
-
-    ## Show parameters
-    print(pars) 
-
-    ## Additional parameters
-    times <- seq(from = 0, to = 600, by = 1)
-    yinit <- c(Susc=0.9, Infected=0.1, Recovered=0)  
-
-    ## SIR model with vaccination (vaccine takes people from the Susceptible and put them in the Recovered)
-    SIR_model <- function(times,yinit,pars){
-
-    with(as.list(c(yinit,pars)), {
-
-            dSusc      <- birth - beta*Infected*Susc                     - vaccination*Susc - death*Susc
-            dInfected  <-         beta*Infected*Susc - recovery*Infected                    - death*Infected
-            dRecovered <-                              recovery*Infected + vaccination*Susc - death*Recovered
-
-            return(list(c(dSusc, dInfected, dRecovered)))}) 
-
-    }
-
-    ## run the ode solver for the function specified (function defined above is used)
-    ## return the value of each compartment (Susc, Infected, Recovered) for each time step.
-    results <- ode(func = SIR_model,times = times,y = yinit,parms = pars)
-    results <- as.data.frame(results)
-
-    ## Return results
-    return(results)
+##################################
+## SIR sem vacinação
+##################################
+SIR <- function(passos, inicial, parametros){
+    with(as.list(c(inicial,parametros)), {
+        dSuscetivel <- nascimentos - beta*Infectados*Suscetivel - mortes*Suscetivel
+        dInfectado  <- beta*Infectados*Suscetivel - gamma*Infectados - mortes*Infectados
+        dRecuperado <-                              gamma*Infectados - mortes*Recuperados
+        return( list(c(dSuscetivel, dInfectado, dRecuperado)) )
+    })
 }
 
+parametros <- c(beta = 0.1, gamma = 0.005, mortes = 0.001, nascimentos = 0.001)
+passos <- seq(from = 0, to = 600, by = 1)
+inicial <- c(Suscetivel = 0.9, Infectados = 0.1, Recuperados = 0)
+saida <- ode(func = SIR, times = passos, y = inicial, parms = parametros)
+saida <- as.data.frame(saida)
 
-test.pars.v <- c(beta = 0.1, recovery = 0.005, death = 0.001, birth = 0.001, vaccination = 0.1)
-results.v   <- epi203v(test.pars.v)
+jpeg("03.jpg")
+matplot(saida[, 1], saida[, 2:4], type="l", lty=1,xlab="Tempo",xlim=c(0,700),ylab="População (Proporção)",ylim=c(0,1),frame=F,lwd=2,main="Sem vacinação")
+legend("right", col=1:3, legend=c("Suscetíveis", "Infectados", "Recuperados"), lwd=2,bty="n")
+dev.off()
 
-       beta    recovery       death       birth vaccination 
-      0.100       0.005       0.001       0.001       0.100 
+##################################
+## SIR com vacinação
+##################################
+SIR_vacinacao <- function(passos,inicial,parametros){
+    with(as.list(c(inicial,parametros)), {
+        dSuscetivel <- nascimentos - beta*Infectados*Suscetivel - vacinacao*Suscetivel - mortes*Suscetivel
+        dInfectado  <- beta*Infectados*Suscetivel - gamma*Infectados - mortes*Infectados
+        dRecuperado <-                              gamma*Infectados + vacinacao*Suscetivel - mortes*Recuperados
+        return(list(c(dSuscetivel, dInfectado, dRecuperado)))}) 
+}
 
+parametros <- c(beta = 0.1, gamma = 0.005, mortes = 0.001, nascimentos = 0.001, vacinacao = 0.1)
+passos <- seq(from = 0, to = 600, by = 1)
+inicial <- c(Suscetivel=0.9, Infectados=0.1, Recuperados=0)  
+saida_vacinacao <- ode(func = SIR_vacinacao,times = passos,y = inicial,parms = parametros)
+saida_vacinacao <- as.data.frame(saida_vacinacao)
 
-## Plotting
-matplot(x = results.v[,1], y = results.v[,2:4], type="l",lty=1)
-legend("topright", col=1:3, legend=c("S", "I", "R"), lwd=1)
-
-plot of chunk unnamed-chunk-4 
+jpeg("04.jpg")
+matplot(x = saida_vacinacao[,1], y = saida_vacinacao[,2:4],  type="l", lty=1,xlab="Tempo",
+        xlim=c(0,700),ylab="População (Proporção)",ylim=c(0,1),frame=F,lwd=2,main="Com vacinação")
+legend("right", col=1:3, legend=c("Suscetíveis", "Infectados", "Recuperados"), lwd=2,bty="n")
+dev.off()
