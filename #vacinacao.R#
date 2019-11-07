@@ -1,0 +1,94 @@
+##http://recologia.com.br/2015/07/epidemiologia-o-modelo-sir-com-dinamica-populacional/
+##http://homepages.warwick.ac.uk/%7Emasfz/ModelingInfectiousDiseases/Chapter8/Program_8.2/index.html
+##install.packages("deSolve")
+##install.packages("igraph")
+library(deSolve)
+library(igraph)
+
+##################################
+## Grafo
+##################################
+SIR_grafo<-graph.formula(S-+I,I-+R,Nascimentos-+S,Morte+-S,Morte+-I,Morte+-R)
+E(SIR_grafo)$label<-c(expression(paste(beta,"IS")),
+                      "m",
+                      expression(paste(gamma,"I")),
+                      "m",
+                      "m",
+                      "b")
+loc<-matrix(c(0,1,1,1,2,1,0,1.5,1,0.5),ncol=2,byrow=T)
+jpeg("01.jpg")
+plot(SIR_grafo,layout=loc,rescale=F,xlim=c(-0.2,2.2),ylim=c(0,2),vertex.size=40,vertex.color="lightblue",edge.label.color="black")
+dev.off()
+
+##
+SIR_grafo_vac<-graph.formula(S-+I,I-+R,Nascimentos-+S,Morte+-S,Morte+-I,Morte+-R,S-+R)
+E(SIR_grafo_vac)$label<-c(expression(paste(beta,"IS")),
+                      "Vacinação",
+                      "m",
+                      expression(paste(gamma,"I")),
+                      "m",
+                      "m",
+                      "b")
+jpeg("02.jpg")
+plot(SIR_grafo_vac,layout=loc,rescale=F,xlim=c(-0.2,2.2),ylim=c(0,2),vertex.size=40,
+     edge.curved=c(0,0.5,0,0,0,0,0),vertex.color="lightblue",edge.label.color="black")
+dev.off()
+
+##################################
+## SIR sem vacinação
+##################################
+SIR <- function(passos, inicial, parametros){
+    with(as.list(c(inicial,parametros)), {
+        dSuscetivel <- nascimentos - beta*Infectados*Suscetivel - mortes*Suscetivel
+        dInfectado  <- beta*Infectados*Suscetivel - gamma*Infectados - mortes*Infectados
+        dRecuperado <-                              gamma*Infectados - mortes*Recuperados
+        return( list(c(dSuscetivel, dInfectado, dRecuperado)) )
+    })
+}
+
+parametros <- c(beta = 0.1, gamma = 0.005, mortes = 0.001, nascimentos = 0.001)
+passos <- seq(from = 0, to = 600, by = 1)
+inicial <- c(Suscetivel = 0.9, Infectados = 0.1, Recuperados = 0)
+saida <- ode(func = SIR, times = passos, y = inicial, parms = parametros)
+saida <- as.data.frame(saida)
+
+jpeg("03.jpg")
+matplot(saida[, 1], saida[, 2:4], type="l", lty=1,xlab="Tempo",xlim=c(0,700),ylab="População (Proporção)",ylim=c(0,1),frame=F,lwd=2,main="Sem vacinação")
+legend("right", col=1:3, legend=c("Suscetíveis", "Infectados", "Recuperados"), lwd=2,bty="n")
+dev.off()
+
+##################################
+## SIR com vacinação
+##################################
+SIR_vacinacao <- function(passos,inicial,parametros){
+    with(as.list(c(inicial,parametros)), {
+        dSuscetivel <- nascimentos - beta*Infectados*Suscetivel - vacinacao*Suscetivel - mortes*Suscetivel
+        dInfectado  <- beta*Infectados*Suscetivel - gamma*Infectados - mortes*Infectados
+        dRecuperado <-                              gamma*Infectados + vacinacao*Suscetivel - mortes*Recuperados
+        return(list(c(dSuscetivel, dInfectado, dRecuperado)))}) 
+}
+
+parametros <- c(beta = 0.1, gamma = 0.005, mortes = 0.001, nascimentos = 0.001, vacinacao = 0.1)
+passos <- seq(from = 0, to = 600, by = 1)
+inicial <- c(Suscetivel=0.9, Infectados=0.1, Recuperados=0)  
+saida_vacinacao <- ode(func = SIR_vacinacao,times = passos,y = inicial,parms = parametros)
+saida_vacinacao <- as.data.frame(saida_vacinacao)
+
+jpeg("04.jpg")
+matplot(x = saida_vacinacao[,1], y = saida_vacinacao[,2:4],  type="l", lty=1,xlab="Tempo",
+        xlim=c(0,700),ylab="População (Proporção)",ylim=c(0,1),frame=F,lwd=2,main="Com vacinação")
+legend("right", col=1:3, legend=c("Suscetíveis", "Infectados", "Recuperados"), lwd=2,bty="n")
+dev.off()
+
+
+cor(EEG,DP,method = "spearman")
+
+a<-rnorm(30)
+b<-rnorm(30)
+
+cor.test(a,b,method = "spearman")
+
+i<-sample(1:30,30)
+a[i]<-a[i]
+
+cor.test(a,b,method = "spearman")
